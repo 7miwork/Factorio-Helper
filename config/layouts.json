@@ -1,0 +1,30 @@
+{
+  "default": "expandable",
+  "strategies": {
+    "compact": {
+      "columns": 4,
+      "spacing": 2,
+      "description": "Dicht gepackte Anordnung fuer minimale Groesse – geeignet fuer kleine, upgradefreundliche Aufbauten."
+    },
+    "balanced": {
+      "columns": 4,
+      "spacing": 3,
+      "description": "Ausgewogene Mischung aus Dichte und Erweiterbarkeit."
+    },
+    "expandable": {
+      "columns": 4,
+      "spacing": 4,
+      "description": "Leave bewusst Platz fuer spaetere Erweiterungen (z. B. Starter Base)."
+    },
+    "main_bus": {
+      "columns": 8,
+      "spacing": 5,
+      "description": "Gebaeude parallel an einem zentralen Hauptbus angeordnet."
+    },
+    "city_block": {
+      "columns": 8,
+      "spacing": 6,
+      "description": "Grosse, modulare Baulaender in Stadtblock-Form."
+    }
+  }
+}

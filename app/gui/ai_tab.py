@@ -1,24 +1,35 @@
-"""Tab: KI-Provider und Modelle konfigurieren (Ollama, LM Studio, ...)."""
+"""Tab: KI-Provider und Modelle konfigurieren (Ollama, LM Studio, ...).
+
+Die Modell-Erkennung laeuft in einem Hintergrund-Thread, damit die GUI nicht
+einfriert. Bei Ollama/OpenAI-kompatiblen Endpoints markiert das Tab konfigurierte
+Modelle, die nicht (bzw. nicht installiert) gefunden wurden.
+"""
 from __future__ import annotations
 
+import queue
+import threading
 import tkinter as tk
-from tkinter import messagebox, ttk
+from tkinter import ttk
 
 from ..ai.manager import ProviderManager
 
 
 class AISettingsTab(ttk.Frame):
+    NOT_INSTALLED_SUFFIX = "  (nicht installiert)"
+
     def __init__(self, parent, main):
         super().__init__(parent, padding=16)
         self.main = main
         self.config_path = main.project_root / "config" / "ai_providers.json"
         self.manager = ProviderManager(self.config_path)
+        self._queue = queue.Queue()
 
         self.provider_var = tk.StringVar()
         self.model_var = tk.StringVar()
         self.base_var = tk.StringVar()
         self.status = tk.StringVar(value="Provider wählen und Modelle aktualisieren.")
         self._build()
+        self.after(50, self._poll_results)
         self._refresh_providers()
 
     def _build(self) -> None:
@@ -58,26 +69,72 @@ class AISettingsTab(ttk.Frame):
         self._set_models(name)
 
     def _set_models(self, name: str) -> None:
+        """Zeigt die (lokalen) konfigurierten Modelle ohne Netzwerkaufruf."""
         try:
-            models = self.manager.models(name, refresh=False)
+            configured = self.manager.models(name, refresh=False)
         except ValueError:
-            models = []
-        self.model_box["values"] = models
-        self.model_var.set(models[0] if models else "")
+            configured = []
+        self._apply_models(name, discovered=None, configured=configured)
 
+    # ------------------------------------------------------------------ #
     def refresh_models(self) -> None:
         name = self.provider_var.get()
         if not name:
             return
+        self.status.set(f"Modelle für {name} werden geladen …")
+        threading.Thread(target=self._refresh_worker, args=(name,), daemon=True).start()
+
+    def _refresh_worker(self, name: str) -> None:
         try:
-            models = self.manager.models(name, refresh=True)
-        except Exception as error:  # noqa: BLE001 – Netzwerkfehler
-            self.status.set(f"Modell-Erkennung fehlgeschlagen: {error}")
-            messagebox.showinfo("Modell-Erkennung", str(error))
-            return
-        self.model_box["values"] = models
-        self.model_var.set(models[0] if models else "")
-        self.status.set(f"{len(models)} Modell(e) für {name}.")
+            discovered = self.manager.models(name, refresh=True)
+            configured = self.manager.models(name, refresh=False)
+        except Exception as error:  # noqa: BLE001 – Netzwerkfehler sind erwartbar
+            self._queue.put(("error", str(error)))
+        else:
+            self._queue.put(("ok", name, discovered, configured))
+
+    def _poll_results(self) -> None:
+        try:
+            while True:
+                item = self._queue.get_nowait()
+                if item[0] == "ok":
+                    self._apply_models(*item[1:])
+                elif item[0] == "error":
+                    self.status.set(f"Modell-Erkennung fehlgeschlagen: {item[1]}")
+        except queue.Empty:
+            pass
+        self.after(50, self._poll_results)
+
+    def _apply_models(self, provider: str, discovered, configured: list) -> None:
+        """Baut die Modellliste; konfigurierte, nicht gefundene Modelle werden markiert."""
+        discovered = list(discovered or [])
+        discovered_set = set(discovered)
+        values = []
+        for cfg in configured:
+            if discovered_set and cfg not in discovered_set:
+                values.append(f"{cfg}{self.NOT_INSTALLED_SUFFIX}")
+            else:
+                values.append(cfg)
+        # Zusätzlich gefundene, aber nicht vorkonfigurierte Modelle anfügen.
+        seen = set(values)
+        for discovered_name in discovered:
+            if discovered_name not in seen:
+                values.append(discovered_name)
+                seen.add(discovered_name)
+
+        self.model_box["values"] = values
+
+        if discovered_set:
+            preferred = next((cfg for cfg in configured if cfg in discovered_set), None)
+        else:
+            preferred = configured[0] if configured else None
+        self.model_var.set(preferred if preferred else (values[0] if values else ""))
+
+        if discovered_set:
+            self.status.set(f"{provider}: {len(discovered)} installierte(s)/erreichbare(s) Modell(e), "
+                            f"{len(configured)} konfiguriert.")
+        else:
+            self.status.set(f"{provider}: Modellliste aus Konfiguration ({len(configured)}).")
 
     def list_models(self) -> None:
         name = self.provider_var.get()
