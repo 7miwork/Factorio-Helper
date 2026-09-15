@@ -1,0 +1,1 @@
+"""Factorio installation and mod scanning."""

@@ -1,0 +1,1 @@
+"""Persistent Factorio knowledge base."""

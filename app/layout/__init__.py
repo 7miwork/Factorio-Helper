@@ -1,0 +1,1 @@
+"""Deterministic blueprint layout strategies."""

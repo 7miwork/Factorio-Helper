@@ -1,0 +1,25 @@
+{
+  "active_provider": "mock",
+  "roles": {
+    "planner": {"provider": "mock", "model": "builtin"},
+    "validator": {"provider": "mock", "model": "builtin"},
+    "description": {"provider": "mock", "model": "builtin"}
+  },
+  "providers": {
+    "ollama": {
+      "type": "ollama", "enabled": true, "base_url": "http://localhost:11434", "models": [
+        {"name": "qwen2.5-coder:7b", "enabled": true, "role": "coding"},
+        {"name": "qwen2.5-coder:14b", "enabled": true, "role": "coding"},
+        {"name": "gpt-oss:20b", "enabled": true, "role": "general"}
+      ]
+    },
+    "lmstudio": {"type": "openai_compatible", "enabled": false, "base_url": "http://localhost:1234/v1", "api_key_env": "", "models": [{"name": "local-model", "enabled": true, "role": "general"}]},
+    "openai_compatible": {"type": "openai_compatible", "enabled": false, "base_url": "", "api_key_env": "FACTORIO_AI_API_KEY", "models": []},
+    "custom": {"type": "openai_compatible", "enabled": false, "base_url": "", "api_key_env": "", "models": []},
+    "openrouter": {"type": "openai_compatible", "enabled": false, "base_url": "https://openrouter.ai/api/v1", "api_key_env": "OPENROUTER_API_KEY", "models": [{"name": "openrouter/free", "enabled": true, "role": "general"}]},
+    "huggingface": {"type": "openai_compatible", "enabled": false, "base_url": "https://router.huggingface.co/v1", "api_key_env": "HF_TOKEN", "models": [{"name": "meta-llama/Llama-3.1-8B-Instruct", "enabled": true, "role": "general"}]},
+    "groq": {"type": "openai_compatible", "enabled": false, "base_url": "https://api.groq.com/openai/v1", "api_key_env": "GROQ_API_KEY", "models": [{"name": "llama-3.1-8b-instant", "enabled": true, "role": "general"}]},
+    "together": {"type": "openai_compatible", "enabled": false, "base_url": "https://api.together.xyz/v1", "api_key_env": "TOGETHER_API_KEY", "models": [{"name": "meta-llama/Llama-3.3-70B-Instruct-Turbo", "enabled": true, "role": "general"}]},
+    "mock": {"type": "mock", "enabled": true, "base_url": "", "models": [{"name": "builtin", "enabled": true, "role": "general"}]}
+  }
+}

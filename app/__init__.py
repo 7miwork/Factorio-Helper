@@ -1,0 +1,1 @@
+"""Factorio AI Blueprint Generator."""

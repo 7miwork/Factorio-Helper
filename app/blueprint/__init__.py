@@ -1,0 +1,1 @@
+"""Factorio blueprint creation and validation."""
