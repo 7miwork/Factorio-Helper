@@ -9,6 +9,7 @@ BLUEPRINTS_DIR = ROOT / "blueprints"
 LOGS_DIR = ROOT / "logs"
 DATA_DIR = ROOT / "data"
 DATA_FACTORIO_DIR = DATA_DIR / "factorio"
+DATA_CACHE_DIR = DATA_DIR / "cache"
 
 
 def load_settings() -> dict:

@@ -12,6 +12,7 @@ import tkinter as tk
 from tkinter import ttk
 
 from ..ai.manager import ProviderManager
+from ..knowledge.context import load_learning_notes, save_learning_notes
 
 
 class AISettingsTab(ttk.Frame):
@@ -31,6 +32,7 @@ class AISettingsTab(ttk.Frame):
         self._build()
         self.after(50, self._poll_results)
         self._refresh_providers()
+        self._build_notes()
 
     def _build(self) -> None:
         ttk.Label(self, text="KI Provider").pack(anchor="w")
@@ -145,3 +147,21 @@ class AISettingsTab(ttk.Frame):
             self.status.set(f"Konfigurierte Modelle für {name}: {len(self.model_box['values'])}")
         except ValueError as error:  # z. B. deaktivierter Provider
             self.status.set(str(error))
+# ------------------------------------------------------------------ #
+    # Lern-Notizen (eigene Eingaben, aus denen die KI lernen soll)
+    # ------------------------------------------------------------------ #
+    def _build_notes(self) -> None:
+        notes_box = ttk.LabelFrame(self, text="Lern-Notizen (werden dem KI-Planner mitgegeben)", padding=8)
+        notes_box.pack(fill="x", pady=(12, 0))
+        self.notes_text = tk.Text(notes_box, height=6, wrap="word")
+        self.notes_text.pack(fill="x")
+        self.notes_text.insert("1.0", load_learning_notes())
+        footer = ttk.Frame(notes_box)
+        footer.pack(fill="x", pady=(6, 0))
+        ttk.Button(footer, text="Notizen speichern", command=self.save_notes).pack(side="left")
+        self.notes_status = tk.StringVar(value="")
+        ttk.Label(footer, textvariable=self.notes_status).pack(side="left", padx=(10, 0))
+
+    def save_notes(self) -> None:
+        save_learning_notes(self.notes_text.get("1.0", "end").strip())
+        self.notes_status.set("Gespeichert (data/learn/notes.md) – wird beim nächsten Planen einbezogen.")

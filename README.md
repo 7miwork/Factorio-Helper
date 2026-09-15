@@ -27,6 +27,20 @@ Die grafische Oberflaeche ist als Notebook mit getrennten Tabs in `app/gui/` org
 (Einstellungen, letzter Scan). `app/main.py` ist nur noch der Einstiegspunkt
 (CLI + GUI-Start).
 
+## Grafik-Vorschau & KI-Lern-Notizen
+
+Das `app/graphics/`-Paket loest Prototyp-Grafikreferenzen (`__base__/...`,
+`__mod__/...`) gegen Installation und installierte Mods auf, extrahiert
+Bilddateien (aus Ordnern oder Mod-Zips) in einen Cache und stellt sie als PNG
+bereit. Im Knowledge-Tab kann nach dem Aufbau der Knowledge Base ein Prototyp
+ausgewaehlt werden; Metadaten und – falls verfuegbar – die Spielgrafik (Icon)
+werden angezeigt.
+
+Eigene Eingaben fuer die KI werden als "Lern-Notizen" im AI-Settings-Tab
+gespeichert (`data/learn/notes.md`). Diese fliessen bei der naechsten Planung
+als `learning_notes` in den KI-Kontext ein, damit die KI aus deinen
+Anmerkungen lernen kann.
+
 ## CLI
 
 ```text
