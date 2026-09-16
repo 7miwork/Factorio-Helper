@@ -56,7 +56,13 @@ Die Versionsnummer wird aus `data/base/info.json` gelesen. Mods werden als Verze
 
 ## Knowledge Base
 
-Der Befehl `knowledge` erzeugt `data/factorio/knowledge.db` mit Mod-Metadaten und typisierten JSON-Prototypen fuer Items, Entities, Rezepte, Technologien, Fluids, Ressourcen und Module. Factorio speichert seine nativen Prototypen im Lua-Data-Stage; diese Phase importiert deshalb JSON-Exporte, ohne Lua-Dateien unsicher zu parsen. Die Datenbank ist lokal und wird bei erneutem Aufbau aktualisiert.
+Der Befehl `knowledge` erzeugt `data/factorio/knowledge.db` mit Mod-Metadaten und
+typisierten Prototypen fuer Items, Entities, Rezepte, Technologien, Fluids,
+Ressourcen und Module. Neben JSON-Exporten werden native Lua-Data-Stage-Dateien
+(`data:extend{ ... }`) ueber einen toleranten Teilmengen-Parser
+(`app/factorio/lua_parser.py`) ausgelesen – dadurch stehen auch die Icons der
+Echt-Daten fuer die Grafik-Vorschau zur Verfuegung. Die Datenbank ist lokal und
+wird bei erneutem Aufbau aktualisiert.
 
 ## Blueprint-Kern
 

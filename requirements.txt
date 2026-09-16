@@ -1,0 +1,11 @@
+# Factorio AI Blueprint Generator – optionale Abhängigkeiten.
+#
+# Die Kernfunktionen (Erkennung, Mod-Scan, Knowledge Base, Blueprint-Encoder/
+# Decoder/Validator, Layout, Library) laufen komplett mit der Python-
+# Standardbibliothek – es sind KEINE zwingenden Pakete nötig.
+#
+# Optional können zusätzliche Pakete installiert werden (z. B. mit:
+#   python -m pip install -r requirements.txt ):
+
+requests>=2.31.0       # Komfortablerer HTTP-Zugriff für KI-Provider (Phase 5+)
+pillow>=10.0.0         # Bildverarbeitung für die Grafik-Vorschau (z. B. DDS->PNG)
