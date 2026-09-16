@@ -31,10 +31,16 @@ Die grafische Oberflaeche ist als Notebook mit getrennten Tabs in `app/gui/` org
 
 Das `app/graphics/`-Paket loest Prototyp-Grafikreferenzen (`__base__/...`,
 `__mod__/...`) gegen Installation und installierte Mods auf, extrahiert
-Bilddateien (aus Ordnern oder Mod-Zips) in einen Cache und stellt sie als PNG
-bereit. Im Knowledge-Tab kann nach dem Aufbau der Knowledge Base ein Prototyp
-ausgewaehlt werden; Metadaten und – falls verfuegbar – die Spielgrafik (Icon)
-werden angezeigt.
+Bilddateien (aus Ordnern oder Mod-Zips) in einen Cache und stellt sie als
+Vorschau bereit. Im Knowledge-Tab kann nach dem Aufbau der Knowledge Base ein
+Prototyp ausgewaehlt werden; Metadaten und – falls verfuegbar – die Spielgrafik
+(Icon) werden angezeigt, wahlweise in mehreren Skalierungen (1x-4x).
+
+Unterstuetzte Formate: PNG (nativ) und – fuer Spritesheets – unkomprimierte
+DDS-Texel (ueber einen kl. Decoder in `app/graphics/dds.py`). Fuers
+Hochskalieren wird optional `Pillow` genutzt (`python -m pip install pillow`).
+Lua-Data-Stage-Prototypen werden auch direkt aus Mod-Zips gelesen
+(`app/factorio/lua_parser.py`).
 
 Eigene Eingaben fuer die KI werden als "Lern-Notizen" im AI-Settings-Tab
 gespeichert (`data/learn/notes.md`). Diese fliessen bei der naechsten Planung

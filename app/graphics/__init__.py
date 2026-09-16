@@ -22,7 +22,7 @@ from ..utils import paths
 
 logger = logging.getLogger(__name__)
 
-SUPPORTED_EXTENSIONS = (".png",)
+SUPPORTED_EXTENSIONS = (".png", ".dds")
 # DDS wird derzeit nicht angezeigt; Dateien werden aber nicht als Fehler gemeldet.
 KNOWN_EXTENSIONS = (".png", ".dds")
 

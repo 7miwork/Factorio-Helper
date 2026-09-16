@@ -5,7 +5,11 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from app.factorio.lua_parser import extract_prototypes, read_lua_prototypes
+from app.factorio.lua_parser import (
+    extract_prototypes,
+    read_lua_prototypes,
+    read_lua_prototypes_from_zip,
+)
 from app.knowledge.builder import build_knowledge_base
 from app.knowledge.database import KnowledgeBase, database_path
 
@@ -57,6 +61,19 @@ class LuaParserTests(unittest.TestCase):
             records = read_lua_prototypes(root, "mymod")
             self.assertTrue(any(r.name == "assembling-machine-1" for r in records))
             self.assertTrue(all(r.source_mod == "mymod" for r in records))
+
+    def test_read_lua_prototypes_from_zip(self):
+        import zipfile
+
+        with tempfile.TemporaryDirectory() as temporary:
+            archive = Path(temporary) / "mymod_1.0.0.zip"
+            with zipfile.ZipFile(archive, "w") as handle:
+                handle.writestr("mymod/data/prototypes/entity/boiler.lua", SAMPLE)
+                handle.writestr("mymod/info.json", '{"name": "mymod"}')
+            records = read_lua_prototypes_from_zip(archive, "mymod")
+            self.assertTrue(any(r.name == "assembling-machine-1" for r in records))
+            self.assertTrue(all(r.source_mod == "mymod" for r in records))
+            self.assertTrue(any("data/prototypes" in r.source_file for r in records))
 
 
 class LuaBuilderIntegrationTests(unittest.TestCase):

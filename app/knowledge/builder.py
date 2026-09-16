@@ -3,7 +3,7 @@ from pathlib import Path
 from app.factorio.detector import detect_installation
 from app.factorio.mod_scanner import scan_mods
 from app.factorio.prototype_reader import read_prototypes, read_zip_prototypes
-from app.factorio.lua_parser import read_lua_prototypes
+from app.factorio.lua_parser import read_lua_prototypes, read_lua_prototypes_from_zip
 from app.knowledge.database import KnowledgeBase, database_path
 from app.knowledge.entities import Prototype
 
@@ -21,6 +21,7 @@ def build_knowledge_base(installation_path: str | Path, project_root: str | Path
             records.extend(read_lua_prototypes(Path(mod.source) / "data" / "prototypes", mod.name))
         elif Path(mod.source).suffix.lower() == ".zip":
             records.extend(read_zip_prototypes(mod.source, mod.name))
+            records.extend(read_lua_prototypes_from_zip(mod.source, mod.name))
     database = KnowledgeBase(database_path(project_root))
     try:
         return database.add(records)

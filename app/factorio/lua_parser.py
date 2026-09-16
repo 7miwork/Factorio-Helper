@@ -206,13 +206,43 @@ def extract_prototypes(text: str, source_mod: str = "unknown", source_file: str 
 
 
 def read_lua_prototypes(root, source_mod: str = "unknown") -> list:
-    """Scannt ein Verzeichnis rekursiv auf .lua-Dateien und extrahiert Prototypen."""
+    """Scannt ein Verzeichnis (oder Zip-Archiv) auf Lua-Data-Stage-Dateien.
+
+    Bei einem Zip-Pfad wird die Prototypen-Extraktion an
+    read_lua_prototypes_from_zip delegiert.
+    """
     root = Path(root)
+    if root.is_file() and root.suffix.lower() == ".zip":
+        return read_lua_prototypes_from_zip(root, source_mod)
     records = []
+    if not root.is_dir():
+        return records
     for path in sorted(root.rglob("*.lua")):
         try:
             text = path.read_text(encoding="utf-8", errors="replace")
         except OSError:
             continue
         records.extend(extract_prototypes(text, source_mod, str(path)))
+    return records
+
+
+def read_lua_prototypes_from_zip(zip_path, source_mod: str = "unknown") -> list:
+    """Liest Lua-Prototypen aus einer Mod-Zip-Datei (…/data/prototypes/**.lua)."""
+    from zipfile import ZipFile
+
+    zip_path = Path(zip_path)
+    records = []
+    try:
+        with ZipFile(zip_path) as archive:
+            for name in archive.namelist():
+                norm = name.replace("\\", "/")
+                if not norm.endswith(".lua") or "/data/prototypes/" not in norm:
+                    continue
+                try:
+                    text = archive.read(name).decode("utf-8", errors="replace")
+                except (KeyError, OSError):
+                    continue
+                records.extend(extract_prototypes(text, source_mod, f"{zip_path.name}:{name}"))
+    except OSError:
+        pass
     return records

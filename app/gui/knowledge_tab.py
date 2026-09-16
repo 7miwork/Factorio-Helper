@@ -6,11 +6,13 @@ die Spielgrafik (Icon) als Vorschau.
 """
 from __future__ import annotations
 
+import base64
 import tkinter as tk
 from tkinter import messagebox, ttk
 
 from ..factorio.mod_scanner import scan_mods
 from ..graphics.loader import graphic_path
+from ..graphics.preview import preview_bytes, description
 from ..knowledge.builder import build_knowledge_base
 from ..knowledge.database import KnowledgeBase, database_path
 
@@ -25,6 +27,7 @@ class KnowledgeTab(ttk.Frame):
         self._prototypes = []
         self._mods = []
         self._preview_photo = None  # Referenz gegen Garbage-Collection halten
+        self._current_proto = None
         self._build()
         self._try_load_existing()
 
@@ -57,10 +60,19 @@ class KnowledgeTab(ttk.Frame):
         scroll.pack(side="right", fill="y")
         self.tree.configure(yscrollcommand=scroll.set)
 
-        detail = ttk.Frame(body, width=340, padding=(10, 0, 0, 0))
+        detail = ttk.Frame(body, width=360, padding=(10, 0, 0, 0))
         detail.pack(side="right", fill="y")
         detail.pack_propagate(False)
         ttk.Label(detail, text="Vorschau").pack(anchor="w")
+        scale_row = ttk.Frame(detail)
+        scale_row.pack(fill="x", pady=(2, 5))
+        self.scale_var = tk.StringVar(value="1x")
+        self.scale_box = ttk.Combobox(scale_row, textvariable=self.scale_var, state="readonly",
+                                      values=("1x", "2x", "3x", "4x"), width=6)
+        self.scale_box.pack(side="left")
+        self.preview_info = tk.StringVar(value="")
+        ttk.Label(scale_row, textvariable=self.preview_info, anchor="w").pack(side="left", fill="x", expand=True)
+        self.scale_box.bind("<<ComboboxSelected>>", self._on_scale)
         self.preview_label = ttk.Label(detail, text="(keine Auswahl)", anchor="center")
         self.preview_label.pack(fill="x", pady=(4, 8))
         ttk.Label(detail, text="Metadaten").pack(anchor="w")
@@ -110,8 +122,8 @@ class KnowledgeTab(ttk.Frame):
         selection = self.tree.selection()
         self.meta.configure(state="normal")
         self.meta.delete("1.0", tk.END)
-        self.preview_label.config(image="", text="(keine Auswahl)")
-        self._preview_photo = None
+        self._current_proto = None
+        self._reset_preview()
         if not selection:
             self.meta.configure(state="disabled")
             return
@@ -135,7 +147,25 @@ class KnowledgeTab(ttk.Frame):
                 lines.append(f"  {key}: {data[key]}")
         self.meta.insert(tk.END, "\n".join(lines))
 
+    def _reset_preview(self) -> None:
+        self.preview_label.config(image="", text="(keine Auswahl)")
+        self.preview_info.set("")
+        self._preview_photo = None
+
+    def _scale_value(self) -> float:
+        text = (self.scale_var.get() or "1x").strip()
+        if text.endswith("%"):
+            return max(0.1, round(float(text[:-1]) / 100.0, 2))
+        if text.endswith("x"):
+            return float(text[:-1])
+        return float(text)
+
+    def _on_scale(self, _event=None) -> None:
+        if self._current_proto is not None:
+            self._show_preview(self._current_proto)
+
     def _show_preview(self, proto) -> None:
+        self._current_proto = proto
         install_path = (
             getattr(self, "install_path", None)
             or self.main.factorio_path.get().strip()
@@ -148,10 +178,15 @@ class KnowledgeTab(ttk.Frame):
         except Exception:  # noqa: BLE001
             graphic = None
         if graphic is None:
-            self.preview_label.config(text="(Vorschau nicht verfügbar)")
+            self.preview_label.config(image="", text="(Vorschau nicht verfügbar)")
+            self.preview_info.set("")
             return
         try:
-            self._preview_photo = tk.PhotoImage(file=str(graphic))
+            scale = self._scale_value()
+            png_bytes, width, height = preview_bytes(graphic, scale)
+            self._preview_photo = tk.PhotoImage(data=base64.b64encode(png_bytes).decode("ascii"))
             self.preview_label.config(image=self._preview_photo, text="")
-        except tk.TclError:
-            self.preview_label.config(text="(Grafik konnte nicht geladen werden)")
+            self.preview_info.set(f"{width}×{height}  {description(scale)}")
+        except Exception as error:  # noqa: BLE001 – z. B. DXT-/DDS ohne Decoder
+            self.preview_label.config(image="", text="(Grafik konnte nicht geladen werden)")
+            self.preview_info.set(str(error))
